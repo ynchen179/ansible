@@ -1,0 +1,24 @@
+---
+# defaults file for create_instance
+
+hostname: controller
+
+admin_openrc:
+  OS_USERNAME: admin
+  OS_PASSWORD: stack_pass
+  OS_PROJECT_NAME: admin
+  OS_USER_DOMAIN_NAME: Default
+  OS_PROJECT_DOMAIN_NAME: Default
+  OS_AUTH_URL: "http://{{ hostname }}:5000/v3"
+  OS_IDENTITY_API_VERSION: 3
+  OS_IMAGE_API_VERSION: 2
+
+demo_openrc:
+  OS_USERNAME: demo
+  OS_PASSWORD: stack_pass
+  OS_PROJECT_NAME: demo
+  OS_USER_DOMAIN_NAME: Default
+  OS_PROJECT_DOMAIN_NAME: Default
+  OS_AUTH_URL: "http://{{ hostname }}:5000/v3"
+  OS_IDENTITY_API_VERSION: 3
+  OS_IMAGE_API_VERSION: 2

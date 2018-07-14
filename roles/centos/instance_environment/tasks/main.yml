@@ -1,0 +1,106 @@
+---
+# tasks file for instance_environment
+
+- name: create provider network
+  os_network:
+    name: provider
+    shared: yes
+    external: true
+    state: present
+    provider_physical_network: provider
+    provider_network_type: flat
+  environment:
+    "{{ admin_openrc }}"
+
+# openstack network create  --share --external
+# --provider-physical-network provider --provider-network-type flat
+# provider
+- name: create provider subnet
+  os_subnet:
+    name: provider
+    network_name: provider
+    allocation_pool_start: 203.0.113.101
+    allocation_pool_end: 203.0.113.250
+    dns_nameservers: 8.8.8.8
+    gateway_ip: 203.0.113.1
+    cidr: 203.0.113.0/24
+  environment:
+    "{{ admin_openrc }}"
+# openstack subnet create --network provider
+# --allocation-pool start=203.0.113.101,end=203.0.113.250
+# --dns-nameserver 8.8.8.8 --gateway 203.0.113.1
+# --subnet-range 203.0.113.0/24 provider
+
+
+- name: create selfservice network
+  os_network:
+    name: selfservice
+    state: present
+    region_name: RegionOne
+  environment:
+    "{{ demo_openrc }}"
+
+
+- name: create selfservice subnet
+  os_subnet:
+    name: selfservice
+    network_name: selfservice
+    dns_nameservers: 8.8.8.8
+    gateway_ip: 172.16.1.1
+    cidr: 172.16.1.0/24
+  environment:
+    "{{ demo_openrc }}"
+
+- name: create router
+  os_router:
+    name: router
+    state: present
+    network: provider
+    interfaces:
+      - net: selfservice
+        subnet: selfservice
+  environment:
+    "{{ demo_openrc }}"
+
+- name: create flavor m1.nano
+  os_nova_flavor:
+    name: m1.nano
+    state: present
+    ram: 1024
+    vcpus: 1
+    disk: 1
+    ephemeral: 1
+  environment:
+    "{{ admin_openrc }}"
+
+- name: generate ssh-key
+  user:
+    name: root
+    generate_ssh_key: yes
+    state: present
+
+- name: create keypair
+  os_keypair:
+    name: mykey
+    state: present
+    public_key_file: /root/.ssh/id_rsa.pub
+  environment:
+    "{{ demo_openrc }}"
+
+- name: add icmp rule on default security group
+  os_security_group_rule:
+    security_group: default
+    protocol: icmp
+    state: present
+  environment:
+    "{{ demo_openrc }}"
+
+- name: add ssh rule on default security group
+  os_security_group_rule:
+    security_group: default
+    protocol: tcp
+    port_range_min: 22
+    port_range_max: 22
+    state: present
+  environment:
+    "{{ demo_openrc }}"

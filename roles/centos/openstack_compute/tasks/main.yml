@@ -1,0 +1,24 @@
+---
+# tasks file for openstack_compute
+
+- name: add openstack_environment role
+  include_role:
+    name: centos/openstack_environment
+
+- name: include chrony role
+  include_role:
+    name: centos/chrony
+
+- name:  configure chrony for compute
+  template:
+    src: client_chrony.conf.j2
+    dest: /etc/chrony.conf
+  notify: restart chronyd
+
+- name: add nova-compute role
+  include_role:
+    name: centos/nova-compute
+
+- name: add neutron-compute role
+  include_role:
+    name: centos/neutron-compute

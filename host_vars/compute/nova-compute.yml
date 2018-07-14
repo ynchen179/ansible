@@ -1,0 +1,25 @@
+---
+
+nova_hostname: controller
+
+# nova.conf
+# [keystone_authtoken]
+nova_keystone_authtoken_auth_uri: "http://{{ nova_hostname }}:5000"
+nova_keystone_authtoken_auth_url: "http://{{ nova_hostname }}:5000"
+nova_keystone_authtoken_memcached_servers: "http://{{ nova_hostname }}:11211"
+nova_keystone_authtoken_auth_type: password
+nova_keystone_authtoken_project_domain_name: Default
+nova_keystone_authtoken_user_domain_name: Default
+nova_keystone_authtoken_project_name: service
+nova_keystone_authtoken_project_username: nova
+nova_keystone_authtoken_project_password: stack_pass
+# [neutron]
+nova_neutron_url: "http://{{ nova_hostname }}:9696"
+nova_neutron_auth_url: "http://{{ nova_hostname }}:5000"
+nova_neutron_auth_type: password
+nova_neutron_project_domain_name: default
+nova_neutron_user_domain_name: default
+nova_neutron_region_name: RegionOne
+nova_neutron_project_name: service
+nova_neutron_username: neutron
+nova_neutron_password: stack_pass

@@ -1,0 +1,31 @@
+---
+
+# mysql_secure_installation
+- name: delete 'anonymous' user on sql server {{ ansible_nodename }}
+  mysql_user:
+    check_implicit_admin: yes
+    user: ""
+    host: "{{ item }}"
+    state: absent
+  with_items:
+    - ""
+    - "{{ ansible_nodename }}"
+    - localhost
+
+- name: change 'root' user password
+  mysql_user:
+    check_implicit_admin: yes
+    name: root
+    password: "{{ mysql_root_password }}"
+    priv: "*.*:ALL,GRANT"
+    host: "{{ item }}"
+  with_items:
+    - "{{ ansible_nodename }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: delete 'test' database
+  mysql_db:
+    name: test
+    state: absent

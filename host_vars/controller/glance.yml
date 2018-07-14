@@ -1,0 +1,32 @@
+---
+
+glance_hostname: controller
+
+# credentials for glance service
+glance_user: glance
+glance_group: glance
+glance_pass: stack_pass
+
+glance_internal_url: "http://{{ glance_hostname }}:9292"
+glance_public_url: "http://{{ glance_hostname }}:9292"
+glance_admin_url: "http://{{ glance_hostname }}:9292"
+
+glance_region: RegionOne
+
+
+# glance-api.conf & glance-registry.conf
+# [database]
+glancedb_name: glance
+glancedb_user: glance
+glancedb_pass: stack_pass
+
+# [keystone_authtoken]
+glance_keystone_authtoken_auth_uri: "http://{{ glance_hostname }}:5000"
+glance_keystone_authtoken_auth_url: "http://{{ glance_hostname }}:5000"
+glance_keystone_authtoken_memcached_servers: "{{ glance_hostname }}:11211"
+glance_keystone_authtoken_auth_type: password
+glance_keystone_authtoken_project_domain_name: Default
+glance_keystone_authtoken_user_domain_name: Default
+glance_keystone_authtoken_project_name: service
+glance_keystone_authtoken_project_username: glance
+glance_keystone_authtoken_project_password: stack_pass

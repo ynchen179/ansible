@@ -1,0 +1,13 @@
+---
+# handlers file for nova-controller
+
+- name: restart openstack-nova services
+  service:
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+    - openstack-nova-api
+    - openstack-nova-consoleauth
+    - openstack-nova-scheduler
+    - openstack-nova-conductor
+    - openstack-nova-novncproxy

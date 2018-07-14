@@ -1,0 +1,54 @@
+---
+# tasks file for glance
+
+- name: install glance
+  yum:
+    name: openstack-glance
+    state: latest
+
+- name: copy glance-api.conf
+  template:
+    src: glance-api.conf.j2
+    dest: /etc/glance/glance-api.conf
+  notify: restart openstack-glance-api
+
+- name: copy glance-registry.conf
+  template:
+    src: glance-registry.conf.j2
+    dest: /etc/glance/glance-registry.conf
+  notify: restart openstack-glance-registry
+
+- name: create glance database
+  mysql_db:
+      state: present
+      name: glance
+
+- name: start glance services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - openstack-glance-api
+    - openstack-glance-registry
+
+- name: grant privileges to glance
+  mysql_user:
+    check_implicit_admin: yes
+    name: "{{ glancedb_user }}"
+    password: "{{ glancedb_pass }}"
+    priv: "{{ glancedb_name }}.*:ALL"
+    state: present
+    host: "{{ item }}"
+  with_items:
+    - "localhost"
+    - "%"
+
+- name: populate glance database
+  shell: 'su -s /bin/sh -c "glance-manage db_sync" glance && touch /etc/glance/.glance_db_sync_exists'
+  args:
+    creates: /etc/glance/.glance_db_sync_exists
+
+
+- include_tasks: glance_user.yml
+- include_tasks: images.yml

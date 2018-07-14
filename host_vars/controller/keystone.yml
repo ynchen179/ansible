@@ -1,0 +1,29 @@
+---
+
+keystone_hostname: controller
+
+# credentials for keystone service
+keystone_user: keystone
+keystone_group: keystone
+keystone_pass: stack_pass
+
+keystone_bootstrap_internal_url: "http://{{ keystone_hostname }}:5000/v3/"
+keystone_bootstrap_public_url: "http://{{ keystone_hostname }}:5000/v3/"
+keystone_bootstrap_admin_url: "http://{{ keystone_hostname }}:5000/v3/"
+
+keystone_bootstrap_region: RegionOne
+
+
+# keystone.conf
+# [database]
+keystonedb_name: keystone
+keystonedb_user: keystone
+keystonedb_pass: stack_pass
+
+# [keystone_authtoken]
+keystone_auth_admin_user: admin
+keystone_auth_admin_pass: stack_pass
+keystone_auth_admin_project_name: admin
+keystone_auth_user_domain_name: Default
+keystone_auth_project_domain_name: Default
+keystone_auth_url: "http://{{ keystone_hostname }}:5000"

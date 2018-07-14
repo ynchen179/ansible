@@ -1,0 +1,7 @@
+---
+# handlers file for openstack_controller
+
+- name: restart chronyd
+  service:
+    name: chronyd
+    state: restarted

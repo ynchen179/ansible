@@ -1,0 +1,20 @@
+---
+- hosts: controller
+  remote_user: root
+  roles:
+    - centos/openstack_controller
+
+- hosts: compute
+  remote_user: root
+  roles:
+    - centos/openstack_compute
+  tasks:
+    - name: pausing playbook to automatically add compute nodes to controller
+      pause:
+        minutes: 2
+
+- hosts: controller
+  remote_user: root
+  roles:
+    - centos/instance_environment
+    - centos/create_instance

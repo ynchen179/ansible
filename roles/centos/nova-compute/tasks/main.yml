@@ -1,0 +1,24 @@
+---
+# tasks file for nova-compute
+
+- name: install openstack-nova-compute
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - openstack-nova-compute
+
+- name: copy nova.conf
+  template:
+    src: nova.conf.j2
+    dest: /etc/nova/nova.conf
+  notify: restart openstack-nova-compute
+  
+- name: start openstack-nova-compute service
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - libvirtd
+    - openstack-nova-compute

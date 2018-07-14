@@ -1,0 +1,52 @@
+---
+# create glance user
+
+- name: create glance user
+  shell: 'openstack user create --domain default --password stack_pass glance && touch /etc/glance/.glance_user_exists'
+  environment:
+    "{{ admin_openrc }}"
+  args:
+    creates: /etc/glance/.glance_user_exists
+
+#
+# - name: create glance user
+#   os_user:
+#     state: present
+#     name: glance
+#     password: stack_pass
+#     domain: default
+#   environment:
+#     "{{ admin_openrc }}"
+
+- name: associate glance to admin role
+  os_user_role:
+    user: glance
+    role: admin
+    project: service
+    state: present
+    region_name: RegionOne
+  environment:
+    "{{ admin_openrc }}"
+
+- name: create glance service
+  os_keystone_service:
+     state: present
+     name: glance
+     service_type: image
+     description: OpenStack Image Service
+  environment:
+    "{{ admin_openrc }}"
+
+- name: create glance endpoints
+  os_keystone_endpoint:
+    service: glance
+    endpoint_interface: "{{ item }}"
+    url: http://controller:9292
+    region: RegionOne
+    state: present
+  with_items:
+    - public
+    - internal
+    - admin
+  environment:
+    "{{ admin_openrc }}"

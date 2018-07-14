@@ -1,0 +1,27 @@
+---
+# tasks file for create_instance
+
+- name: create instance on provider network
+  os_server:
+    name: provider-instance
+    flavor: m1.nano
+    image: cirros
+    network: provider
+    security_groups: default
+    key_name: mykey
+    state: present
+  environment:
+    "{{ demo_openrc }}"
+
+- name: create instance on selfservice network
+  os_server:
+    name: selfservice-instance
+    flavor: m1.nano
+    image: cirros
+    network: selfservice
+    security_groups: default
+    key_name: mykey
+    state: present
+    auto_ip: no
+  environment:
+    "{{ demo_openrc }}"

@@ -1,0 +1,27 @@
+---
+# tasks file for mariadb-server
+
+- name: install mariadb-server
+  yum:
+    name: "{{ item }}"
+#    update_cache: yes
+    state: latest
+  with_items:
+    - mariadb
+    - mariadb-server
+    - python2-PyMySQL
+    - MySQL-python
+
+- name: start mariadb
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: copy mariadb credentials file
+  template:
+    src: my.cnf.j2
+    dest: /root/.my.cnf
+    mode: 0600
+
+- include_tasks: mysql_secure_installation.yml

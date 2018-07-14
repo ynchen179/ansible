@@ -1,0 +1,27 @@
+---
+# defaults file for neutron-compute
+
+neutron_hostname: controller
+
+# neutron.conf
+# [keystone_authtoken]
+neutron_keystone_authtoken_auth_uri: "http://{{ neutron_hostname }}:5000"
+neutron_keystone_authtoken_auth_url: "http://{{ neutron_hostname }}:5000"
+neutron_keystone_authtoken_memcached_servers: "{{ neutron_hostname }}:11211"
+neutron_keystone_authtoken_auth_type: password
+neutron_keystone_authtoken_project_domain_name: Default
+neutron_keystone_authtoken_user_domain_name: Default
+neutron_keystone_authtoken_project_name: service
+neutron_keystone_authtoken_project_username: neutron
+neutron_keystone_authtoken_project_password: stack_pass
+
+# linuxbridge_agent.ini
+# [linux_bridge]
+neutron_linux_bridge_physical_interface_mappings: provider:eth2
+# [securitygroup]
+neutron_securitygroup_enable_security_group: true
+neutron_securitygroup_firewall_driver: neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
+# [vxlan]
+neutron_vxlan_enable_vxlan: true
+neutron_vxlan_local_ip: "{{ ansible_eth1.ipv4 }}"
+neutron_vxlan_l2_population: true

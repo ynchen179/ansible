@@ -1,0 +1,174 @@
+---
+# tasks file for nova-controller
+
+- name: install nova
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - openstack-nova-api
+    - openstack-nova-conductor
+    - openstack-nova-console
+    - openstack-nova-novncproxy
+    - openstack-nova-scheduler
+    - openstack-nova-placement-api
+
+- name: copy nova.conf
+  template:
+    src: nova.conf.j2
+    dest: /etc/nova/nova.conf
+
+- name: copy 00-nova-placement-api.conf
+  template:
+    src: 00-nova-placement-api.conf.j2
+    dest: /etc/httpd/conf.d/00-nova-placement-api.conf
+  notify: restart httpd
+
+- name: create nova databases
+  mysql_db:
+    state: present
+    name: "{{ item }}"
+  with_items:
+    - nova_api
+    - nova
+    - nova_cell0
+
+- name: grant privileges to nova
+  mysql_user:
+    check_implicit_admin: yes
+    name: "{{ novadb_user }}"
+    password: "{{ novadb_pass }}"
+    priv: "{{ novadb_name }}.*:ALL/{{ nova_api_db_name }}.*:ALL/{{ nova_cell0_db_name }}.*:ALL"
+    state: present
+    host: "{{ item }}"
+  with_items:
+    - "localhost"
+    - "%"
+
+
+#
+# - name: create nova user
+#   os_user:
+#     state: present
+#     name: nova
+#     password: stack_pass
+#     domain: default
+#   environment:
+#     "{{ admin_openrc }}"
+
+- name: create nova user
+  shell: 'openstack user create --domain default --password stack_pass nova && touch /etc/nova/.nova_user_exists'
+  environment:
+    "{{ admin_openrc }}"
+  args:
+    creates: /etc/nova/.nova_user_exists
+
+- name: associate nova to admin role
+  os_user_role:
+    user: nova
+    role: admin
+    project: service
+    state: present
+    region_name: RegionOne
+  environment:
+    "{{ admin_openrc }}"
+
+- name: create nova service
+  os_keystone_service:
+     state: present
+     name: nova
+     service_type: compute
+     description: OpenStack Compute Service
+  environment:
+    "{{ admin_openrc }}"
+
+- name: create compute endpoints
+  os_keystone_endpoint:
+    service: nova
+    endpoint_interface: "{{ item }}"
+    url: http://controller:8774/v2.1
+    region: RegionOne
+    state: present
+  with_items:
+    - public
+    - internal
+    - admin
+  environment:
+    "{{ admin_openrc }}"
+
+
+
+- name: create placement user
+  shell: 'openstack user create --domain default --password stack_pass placement && touch /etc/nova/.placement_user_exists'
+  environment:
+    "{{ admin_openrc }}"
+  args:
+    creates: /etc/nova/.placement_user_exists
+
+- name: associate placement to admin role
+  os_user_role:
+    user: placement
+    role: admin
+    project: service
+    state: present
+    region_name: RegionOne
+  environment:
+    "{{ admin_openrc }}"
+
+- name: create placement service
+  os_keystone_service:
+     state: present
+     name: placement
+     service_type: placement
+     description: OpenStack Placement API Service
+  environment:
+    "{{ admin_openrc }}"
+
+- name: create placement endpoints
+  os_keystone_endpoint:
+    service: placement
+    endpoint_interface: "{{ item }}"
+    url: http://controller:8778
+    region: RegionOne
+    state: present
+  with_items:
+    - public
+    - internal
+    - admin
+  environment:
+    "{{ admin_openrc }}"
+
+
+- name: populate nova_api database
+  shell: 'su -s /bin/sh -c "nova-manage api_db sync" nova && touch /etc/nova/.nova_api_db_sync_exists'
+  #shell: 'su -s /bin/sh -c "nova-manage api_db sync" nova'
+  args:
+    creates:  /etc/nova/.nova_api_db_sync_exists
+
+
+- name: cell_v2 map_cell0
+  shell: 'su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova && touch /etc/nova/.nova_map_cell0_exists'
+  args:
+    creates: /etc/nova/.nova_map_cell0_exists
+
+- name: create nova_cell0
+  shell: 'su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova && touch /etc/nova/.nova_create_cell0_exists'
+  args:
+    creates:  /etc/nova/.nova_create_cell0_exists
+
+- name: populate nova database
+  shell: 'su -s /bin/sh -c "nova-manage db sync" nova && touch /etc/nova/.nova_db_sync_exists'
+  args:
+    creates:  /etc/nova/.nova_db_sync_exists
+
+- name: start nova services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - openstack-nova-api
+    - openstack-nova-consoleauth
+    - openstack-nova-scheduler
+    - openstack-nova-conductor
+    - openstack-nova-novncproxy

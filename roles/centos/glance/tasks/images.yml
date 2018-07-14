@@ -1,0 +1,19 @@
+---
+# images uploaded to glance
+
+
+- name: download cirros image
+  get_url:
+    url: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
+    dest: /etc/glance/cirros-0.4.0-x86_64-disk.img
+
+- name: upload cirros v4.0 image
+  os_image:
+    name: cirros
+    container_format: bare
+    disk_format: qcow2
+    state: present
+    filename: /tmp/cirros-0.4.0-x86_64-disk.img
+    is_public: true
+  environment:
+    "{{ admin_openrc }}"

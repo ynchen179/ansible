@@ -1,0 +1,5 @@
+---
+# defaults file for chrony
+
+chrony_allow_network: 10.0.0.0
+chrony_allow_cidr: 24

@@ -1,0 +1,20 @@
+---
+# tasks file for horizon
+
+- name: install horizon
+  yum:
+    name: openstack-dashboard
+    state: latest
+
+- name: copy horizon local_settings file
+  template:
+    src: local_settings.j2
+    dest: /etc/openstack-dashboard/local_settings
+    owner: root
+    group: apache
+
+- name: copy openstack-dashboard.conf file
+  template:
+    src: openstack-dashboard.conf.j2
+    dest:  /etc/httpd/conf.d/openstack-dashboard.conf
+  notify: restart httpd

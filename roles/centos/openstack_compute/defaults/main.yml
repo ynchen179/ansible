@@ -1,0 +1,4 @@
+---
+# defaults file for openstack_compute
+
+chrony_controller_hostname: controller

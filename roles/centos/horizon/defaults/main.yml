@@ -1,0 +1,8 @@
+---
+# defaults file for horizon
+
+horizon_ALLOWED_HOSTS: '*'
+horizon_OPENSTACK_HOST: controller
+horizon_OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT:  True
+horizon_OPENSTACK_KEYSTONE_DEFAULT_DOMAIN: Default
+horizon_OPENSTACK_KEYSTONE_DEFAULT_ROLE: "user"

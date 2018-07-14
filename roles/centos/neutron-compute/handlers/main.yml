@@ -1,0 +1,7 @@
+---
+# handlers file for neutron-compute
+
+- name: restart neutron-linuxbridge-agent
+  service:
+    name: neutron-linuxbridge-agent
+    state: restarted

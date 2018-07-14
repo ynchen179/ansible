@@ -1,0 +1,18 @@
+---
+# commands to bootstrap keystone
+
+- name: fernet setup
+  shell: 'keystone-manage fernet_setup --keystone-user {{ keystone_user }} --keystone-group "{{ keystone_group }}" && touch /etc/keystone/.keystone_fernet_exists'
+  args:
+    creates: /etc/keystone/.keystone_fernet_exists
+
+- name: credential setup
+  shell: 'keystone-manage credential_setup --keystone-user {{ keystone_user }} --keystone-group "{{ keystone_group }}" && touch /etc/keystone/.keystone_credential_exists'
+  args:
+    creates: /etc/keystone/.keystone_credential_exists
+
+- name: bootstrap identity service
+  shell: 'keystone-manage bootstrap --bootstrap-password {{ keystone_pass }} --bootstrap-internal-url "{{ keystone_bootstrap_internal_url }}" --bootstrap-public-url {{ keystone_bootstrap_public_url }}
+              --bootstrap-admin-url {{ keystone_bootstrap_admin_url }}  --bootstrap-region-id {{ keystone_bootstrap_region }} && touch /etc/keystone/.keystone_bootstrap_exists'
+  args:
+    creates: /etc/keystone/.keystone_bootstrap_exists

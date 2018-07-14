@@ -1,0 +1,13 @@
+---
+# tasks file for rabbitmq-server
+
+- name: install rabbitmq-server
+  yum:
+    name: rabbitmq-server
+    state: latest
+
+- name: start rabbitmq-server
+  service:
+    name: rabbitmq-server
+    state: started
+    enabled: yes

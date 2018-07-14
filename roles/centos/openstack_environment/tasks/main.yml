@@ -1,0 +1,69 @@
+---
+# tasks file for openstack_environment
+
+- name: upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+
+- name: copy hosts file
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+
+- name: configure management network interface eth1
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-eth1
+    regexp: '{{ item.regexp }}'
+    line: '{{ item. line }}'
+  with_items:
+    - { regexp: '^BOOTPROTO=',  line: 'BOOTPROTO=none'}
+    - { regexp: '^ONBOOT=',     line: 'ONBOOT=yes'}
+    - { regexp: '^IPADDR=',     line: 'IPADDR={{ ansible_eth1.ipv4.address }}'}
+    - { regexp: '^PREFIX=',     line: 'PREFIX=24'}
+  notify: restart network
+
+- name: configure provider network interface eth2
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-eth2
+    regexp: '{{ item.regexp }}'
+    line: '{{ item. line }}'
+  with_items:
+    - { regexp: '^BOOTPROTO=',  line: 'BOOTPROTO=none'}
+    - { regexp: '^ONBOOT=',     line: 'ONBOOT=yes'}
+  notify: restart network
+
+- name: install openstack queens repository
+  yum:
+    name: centos-release-openstack-queens
+    state: latest
+
+- name: upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+
+- name: install openstack utilities
+  yum:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - python-openstackclient
+    - openstack-selinux
+    - ebtables
+
+- name: Add the br_netfilter kernel module
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: enable sysctl settings for net.bridge
+  sysctl:
+    name: "{{ item }}"
+    value: 1
+    state: present
+    sysctl_file: /etc/sysctl.conf
+    reload: yes
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables

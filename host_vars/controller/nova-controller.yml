@@ -1,0 +1,46 @@
+---
+
+nova_hostname: controller
+
+# credentials for nova service
+nova_user: nova
+nova_group: nova
+nova_pass: stack_pass
+
+nova_internal_url: "http://{{ nova_hostname }}:8774/v2.1"
+nova_public_url: "http://{{ nova_hostname }}:8774/v2.1"
+nova_admin_url: "http://{{ nova_hostname }}:8774/v2.1"
+nova_region: RegionOne
+
+nova_cell0_db_name: nova_cell0
+# nova.conf
+# [api_database]
+nova_api_db_name: nova_api
+nova_api_db_user: nova
+nova_api_db_pass: stack_pass
+# [database]
+novadb_name: nova
+novadb_user: nova
+novadb_pass: stack_pass
+# [keystone_authtoken]
+nova_keystone_authtoken_auth_uri: "http://{{ nova_hostname }}:5000"
+nova_keystone_authtoken_auth_url: "http://{{ nova_hostname }}:5000"
+nova_keystone_authtoken_memcached_servers: "http://{{ nova_hostname }}:11211"
+nova_keystone_authtoken_auth_type: password
+nova_keystone_authtoken_project_domain_name: Default
+nova_keystone_authtoken_user_domain_name: Default
+nova_keystone_authtoken_project_name: service
+nova_keystone_authtoken_project_username: nova
+nova_keystone_authtoken_project_password: stack_pass
+# [neutron]
+nova_neutron_url: "http://{{ nova_hostname }}:9696"
+nova_neutron_auth_url: "http://{{ nova_hostname }}:5000"
+nova_neutron_auth_type: password
+nova_neutron_project_domain_name: default
+nova_neutron_user_domain_name: default
+nova_neutron_region_name: RegionOne
+nova_neutron_project_name: service
+nova_neutron_username: neutron
+nova_neutron_password: stack_pass
+nova_neutron_service_metadata_proxy: true
+nova_neutron_metadata_proxy_shared_secret: METADATA_SECRET

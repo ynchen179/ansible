@@ -1,0 +1,7 @@
+---
+# handlers file for nova-compute
+
+- name: restart openstack-nova-compute
+  service:
+    name: openstack-nova-compute
+    state: restarted

@@ -1,0 +1,60 @@
+---
+# tasks file for openstack_controller
+
+- name: include openstack_environment role
+  include_role:
+    name: centos/openstack_environment
+
+- name: include chrony role
+  include_role:
+    name: centos/chrony
+
+- name: configure chrony.conf
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+  notify: restart chronyd
+
+- name: include mariadb-server role
+  include_role:
+    name: centos/mariadb-server
+
+- name: configure mariadb-server for openstack
+  template:
+    src: openstack.cnf.j2
+    dest: /etc/my.cnf.d/openstack.cnf
+  notify: restart mariadb
+
+- name: include rabbitmq-server role
+  include_role:
+    name: centos/rabbitmq-server
+
+- name: add {{ rabbitmq_openstack_username }} user for rabbitmq
+  rabbitmq_user:
+    user: "{{ rabbitmq_openstack_username }}"
+    password: "{{ rabbitmq_openstack_password }}"
+    state: present
+    vhost: /
+    configure_priv: .*
+    write_priv: .*
+    read_priv: .*
+
+- name: include keystone role
+  include_role:
+    name: centos/keystone
+
+- name: include glance role
+  include_role:
+    name: centos/glance
+
+- name: include nova-controller role
+  include_role:
+    name: centos/nova-controller
+
+- name: include neutron-controller role
+  include_role:
+    name: centos/neutron-controller
+
+- name: include horizon role
+  include_role:
+    name: centos/horizon

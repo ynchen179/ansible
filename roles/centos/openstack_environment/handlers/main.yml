@@ -1,0 +1,7 @@
+---
+# handlers file for openstack_environment
+
+- name: restart network
+  service:
+    name: network
+    state: restarted

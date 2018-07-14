@@ -1,0 +1,156 @@
+---
+# tasks file for neutron-controller
+
+- name: install neutron
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - openstack-neutron
+    - openstack-neutron-ml2
+    - openstack-neutron-linuxbridge
+    - ebtables
+
+- name: enable sysctl settings for net.bridge
+  sysctl:
+    name: "{{ item }}"
+    value: 1
+    state: present
+    sysctl_file: /etc/sysctl.conf
+    reload: yes
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+
+- name: Add the br_netfilter kernel module
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: copy neutron.conf
+  template:
+    src: neutron.conf.j2
+    dest: /etc/neutron/neutron.conf
+  notify: restart neutron-server
+
+- name: copy ml2_conf.ini
+  template:
+    src: ml2_conf.ini.j2
+    dest: /etc/neutron/plugins/ml2/ml2_conf.ini
+  notify:
+
+- name: copy linuxbridge_agent.ini
+  template:
+    src: linuxbridge_agent.ini.j2
+    dest: /etc/neutron/plugins/ml2/linuxbridge_agent.ini
+  notify: restart neutron-linuxbridge-agent
+
+- name: copy l3_agent.ini
+  template:
+    src: l3_agent.ini.j2
+    dest: /etc/neutron/l3_agent.ini
+  notify: restart neutron-l3-agent
+
+- name: copy dhcp_agent.ini
+  template:
+    src: dhcp_agent.ini.j2
+    dest: /etc/neutron/dhcp_agent.ini
+  notify: restart neutron-dhcp-agent
+
+- name: copy dnsmasq-neutron.conf
+  template:
+    src: dnsmasq-neutron.conf.j2
+    dest: /etc/neutron/dnsmasq-neutron.conf
+    owner: root
+    group: neutron
+  notify: restart neutron-dhcp-agent
+
+- name: copy metadata_agent.ini
+  template:
+    src: metadata_agent.ini.j2
+    dest: /etc/neutron/metadata_agent.ini
+  notify: restart neutron-metadata-agent
+
+- name: create ml2 plugin link
+  file:
+    src: /etc/neutron/plugins/ml2/ml2_conf.ini
+    dest: /etc/neutron/plugin.ini
+    state: link
+  notify:
+
+- name: create neutron database
+  mysql_db:
+    state: present
+    name: "{{ item }}"
+  with_items:
+    - neutron
+
+- name: grant privileges to neutron
+  mysql_user:
+    check_implicit_admin: yes
+    name: "{{ neutrondb_user }}"
+    password: "{{ neutrondb_pass }}"
+    priv: "{{ neutrondb_name }}.*:ALL"
+    state: present
+    host: "{{ item }}"
+  with_items:
+    - "localhost"
+    - "%"
+
+- name: populate neutron database
+  shell: 'su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron && touch /etc/neutron/.neutron_db_sync_exists'
+  args:
+    creates: /etc/neutron/.neutron_db_sync_exists
+
+- name: create neutron user
+  shell: 'openstack user create --domain default --password stack_pass neutron && touch /etc/neutron/.neutron_user_exists'
+  environment:
+    "{{ admin_openrc }}"
+  args:
+    creates: /etc/neutron/.neutron_user_exists
+
+- name: associate neutron to admin role
+  os_user_role:
+    user: neutron
+    role: admin
+    project: service
+    state: present
+    region_name: RegionOne
+  environment:
+    "{{ admin_openrc }}"
+
+- name: create neutron service
+  os_keystone_service:
+     state: present
+     name: neutron
+     service_type: network
+     description: OpenStack Networking
+  environment:
+    "{{ admin_openrc }}"
+
+- name: create neutron endpoints
+  os_keystone_endpoint:
+    service: neutron
+    endpoint_interface: "{{ item }}"
+    url: http://controller:9696
+    region: RegionOne
+    state: present
+  with_items:
+    - public
+    - internal
+    - admin
+  environment:
+    "{{ admin_openrc }}"
+
+- name: start neutron services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - openstack-nova-api.service
+    - neutron-server.service
+    - neutron-linuxbridge-agent.service
+    - neutron-dhcp-agent.service
+    - neutron-metadata-agent.service
+    - neutron-l3-agent.service
